@@ -37,8 +37,23 @@ impl<X: PartialEq, Y: PartialEq> PartialEq for Merged<X, Y> {
     }
 }
 
-pub fn constant_cost<T>(cost: f64) -> impl FnMut(&T) -> f64 {
+impl<X: std::fmt::Debug, Y: std::fmt::Debug> std::fmt::Debug for Merged<X, Y> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Append(y) => write!(f, "Merged::Append({:?})", y),
+            Self::Keep(x, y) => write!(f, "Merged::Keep({:?}, {:?})", x, y),
+            Self::Remove(x) => write!(f, "Merged::Remove({:?})", x),
+            Self::Replace(x, y) => write!(f, "Merged::Replace({:?}, {:?})", x, y),
+        }
+    }
+}
+
+pub fn constant_cost1<T>(cost: f64) -> impl FnMut(&T) -> f64 {
     move |_| cost
+}
+
+pub fn constant_cost2<T, U>(cost: f64) -> impl FnMut(&T, &U) -> f64 {
+    move |_, _| cost
 }
 
 pub fn merge<X, Y>(
@@ -155,4 +170,42 @@ pub fn merge<X, Y>(
     };
 
     res
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Merged;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn kitten_and_sitting() {
+        use std::collections::VecDeque;
+        let kitten: VecDeque<_> = vec!['k', 'i', 't', 't', 'e', 'n'].into();
+        let sitting: VecDeque<_> = vec!['s', 'i', 't', 't', 'i', 'n', 'g'].into();
+
+        let expected: VecDeque<_> = vec![
+            Merged::Replace('k', 's'),
+            Merged::Keep('i', 'i'),
+            Merged::Keep('t', 't'),
+            Merged::Keep('t', 't'),
+            Merged::Replace('e', 'i'),
+            Merged::Keep('n', 'n'),
+            Merged::Append('g'),
+        ]
+        .into();
+        let merged = super::merge(
+            kitten,
+            sitting,
+            |x, y| *x == *y,
+            super::constant_cost2(1.0),
+            super::constant_cost1(1.0),
+            super::constant_cost1(1.0),
+        );
+
+        assert_eq!(expected, merged);
+    }
 }
