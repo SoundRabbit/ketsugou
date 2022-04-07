@@ -1,0 +1,16 @@
+[package]
+name = "ketsugou"
+version = "0.1.0"
+authors = ["SoundRabbit <soundrabbitstd@gmail.com>"]
+edition = "2021"
+description = "merges two arrays"
+licens = "MIT OR Apache-2.0"
+keywords = ["text", "tree", "graph", "merge"]
+categories = ["Rust patterns"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+path = "./src/lib.rs"
+
+[dependencies]
